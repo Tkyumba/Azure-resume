@@ -6,6 +6,3 @@ My own azure resume project following [ACG project video.] (https://www.youtube.
 - Frontend folder contains the website
 - main.js contains visitor counter code
 
-
-
-tupo
