@@ -1,20 +1,18 @@
-window.addEventListener('DOMCountentloaded', (event) => {
-    getVisitcount();
-})    
+const functionApi = 'http://localhost:7071/api/GetResumeCounter';
 
-const functionApi = '';
+async function updateCounter() {
+  const el = document.getElementById('counter');
+  if (!el) { console.warn('counter element not found'); return; }
 
-const getvisitcount = () => {
-    let count = 30;
-    fetch(functionApi). then (response => {
-        return response.json();
-    }). then (respone => {
-         console.log("website called function api");
-            count = respone.count;
-            document.getElementById("counter").innerText = count;
-    }).catch(function(error){
-        console.log(error);
+  try {
+    const resp = await fetch(functionApi, { cache: 'no-store' });
+    if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`);
+    el.textContent = (await resp.text()).trim() || '0';
+    console.log('Counter updated');
+  } catch (err) {
+    console.error('Counter fetch failed:', err);
+    el.textContent = '—';
+  }
+}
 
-    }}
-    return count;
-}    
+updateCounter();
