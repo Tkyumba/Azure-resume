@@ -1,0 +1,26 @@
+name: Deploy Frontend (Static)
+on:
+  push: { branches: [ main ], paths: [ "frontend/**", ".github/workflows/frontend.main.yml" ] }
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Enable static website + upload to $web
+        uses: azure/cli@v1
+        with:
+          inlineScript: |
+            az storage blob service-properties update \
+              --account-name ${{ secrets.AZURE_STORAGE_ACCOUNT }} \
+              --account-key  ${{ secrets.AZURE_STORAGE_KEY }} \
+              --static-website --index-document index.html --404-document 404.html
+            # optional: clear old files
+            az storage blob delete-batch --account-name ${{ secrets.AZURE_STORAGE_ACCOUNT }} --account-key ${{ secrets.AZURE_STORAGE_KEY }} -s '$web' --pattern '*'
+            # upload your static site (your repo’s /frontend folder)
+            az storage blob upload-batch \
+              -s frontend -d '$web' \
+              --account-name ${{ secrets.AZURE_STORAGE_ACCOUNT }} \
+              --account-key  ${{ secrets.AZURE_STORAGE_KEY }} \
+              --overwrite
