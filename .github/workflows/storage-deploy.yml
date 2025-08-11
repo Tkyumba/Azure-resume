@@ -11,29 +11,33 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: azure/cli@v2
 
+      # Turn on Static Website (safe to run every time)
       - name: Enable static website (idempotent)
+        uses: azure/cli@v2
         env:
           AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
           AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
-        run: |
-          az storage blob service-properties update \
-            --account-name "$AZURE_STORAGE_ACCOUNT" \
-            --account-key "$AZURE_STORAGE_KEY" \
-            --static-website true \
-            --index-document index.html \
-            --404-document 404.html
+        with:
+          inlineScript: |
+            az storage blob service-properties update \
+              --account-name "$AZURE_STORAGE_ACCOUNT" \
+              --account-key "$AZURE_STORAGE_KEY" \
+              --static-website true \
+              --index-document index.html \
+              --404-document 404.html
 
+      # Upload site files to $web
       - name: Upload to $web
+        uses: azure/cli@v2
         env:
           AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
           AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
-          SOURCE_DIR: frontend
-        run: |
-          az storage blob upload-batch \
-            --account-name "$AZURE_STORAGE_ACCOUNT" \
-            --account-key "$AZURE_STORAGE_KEY" \
-            -s "$SOURCE_DIR" \
-            -d '$web' \
-            --overwrite true
+        with:
+          inlineScript: |
+            az storage blob upload-batch \
+              --account-name "$AZURE_STORAGE_ACCOUNT" \
+              --account-key "$AZURE_STORAGE_KEY" \
+              -s frontend \
+              -d '$web' \
+              --overwrite true
