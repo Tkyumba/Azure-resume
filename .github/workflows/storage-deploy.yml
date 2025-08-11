@@ -3,20 +3,29 @@ on:
   push:
     branches: [ main ]
     paths:
-      - frontend/** 
+      - frontend/**
       - .github/workflows/storage-deploy.yml
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: azure/cli@v2
 
-      - name: Set up Azure CLI
-        uses: azure/cli@v2
+      - name: Enable static website (idempotent)
+        env:
+          AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
+          AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
+        run: |
+          az storage blob service-properties update \
+            --account-name "$AZURE_STORAGE_ACCOUNT" \
+            --account-key "$AZURE_STORAGE_KEY" \
+            --static-website true \
+            --index-document index.html \
+            --404-document 404.html
 
-      - name: Upload to $web container
+      - name: Upload to $web
         env:
           AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
           AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
@@ -28,4 +37,3 @@ jobs:
             -s "$SOURCE_DIR" \
             -d '$web' \
             --overwrite true
-
