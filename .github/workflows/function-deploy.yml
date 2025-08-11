@@ -3,27 +3,23 @@ on:
   push:
     branches: [ main ]
     paths:
-      - backend/api/** 
+      - backend/api/**
       - .github/workflows/function-deploy.yml
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend/api
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Zip package
-        run: |
-          cd ../../
-          zip -r functionapp.zip backend/api -x "**/node_modules/**" "**/.git/**"
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
 
-      - name: Deploy with publish profile
-        uses: azure/webapps-deploy@v3
+      - name: Build & Deploy Function App
+        uses: Azure/functions-action@v1
         with:
           app-name: getresumecounterr
-          package: functionapp.zip
+          package: backend/api
           publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
