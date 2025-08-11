@@ -1,0 +1,32 @@
+name: Deploy Function App
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend.main.yml"
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend   # change if your Functions code is elsewhere
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - run: dotnet restore
+      - run: dotnet publish -c Release -o ../publish
+
+      - name: Deploy to Azure Functions (publish profile)
+        uses: azure/functions-action@v1
+        with:
+          app-name: GetResumeCounterr
+          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
+          package: ./publish
