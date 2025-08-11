@@ -11,9 +11,6 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend   # change if your Functions code is elsewhere
     steps:
       - uses: actions/checkout@v4
 
@@ -21,8 +18,10 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - run: dotnet restore
-      - run: dotnet publish -c Release -o ../publish
+      - name: Restore and Publish
+        run: |
+          dotnet restore backend/api/*.csproj
+          dotnet publish backend/api/*.csproj -c Release -o ./publish
 
       - name: Deploy to Azure Functions (publish profile)
         uses: azure/functions-action@v1
